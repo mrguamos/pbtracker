@@ -46,7 +46,7 @@
         </v-data-table>
       </v-card-text>
     </v-card>
-    <v-snackbar v-model="snackbar" top>
+    <v-snackbar v-model="snackbar" bottom>
       Invalid Address
 
       <template v-slot:action="{ attrs }">

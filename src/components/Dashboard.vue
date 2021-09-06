@@ -8,10 +8,7 @@
         <Card :content="walletSickle" :title="'Total Sickle in Wallet'" />
       </v-col>
       <v-col cols="6" sm="6" md="3">
-        <Card
-          :content="totalUnclaimedSickle"
-          :title="'Total Unclaimed Sickle'"
-        />
+        <Card :content="totalUnclaimedSickle" :title="'Total Unclaimed'" />
       </v-col>
 
       <v-col cols="6" sm="6" md="3">
