@@ -42,7 +42,7 @@
           :expanded.sync="expanded"
         >
           <template v-slot:[`item.address`]="{ item }">
-            <span class="font-weight-bold">{{ item.address }}</span>
+            <div class="font-weight-bold ellipsis">{{ item.address }}</div>
           </template>
           <template v-slot:[`item.action`]="{ item, index }">
             <div class="text-no-wrap">
@@ -62,12 +62,12 @@
           <template v-slot:[`expanded-item`]="{ item, headers }">
             <td :colspan="headers.length" style="width: 1000px" class="px-0">
               <v-data-table
+                class="table-cursor"
                 :headers="characterHeaders"
                 :items="item.characters"
                 disable-pagination
                 hide-default-footer
                 dense
-                key="id"
               >
                 <template v-slot:[`item.traitName`]="{ item }">
                   <span :class="getElement(item.traitName)"></span>
@@ -355,5 +355,16 @@ export default defineComponent({
   content: url(../assets/earth.png);
   width: 2em;
   height: 2em;
+}
+</style>
+<style lang="scss">
+.table-cursor tbody tr:hover {
+  cursor: pointer;
+}
+.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -o-text-overflow: ellipsis;
 }
 </style>
