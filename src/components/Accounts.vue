@@ -114,6 +114,7 @@ export default defineComponent({
       { text: 'Wallet Sickle', value: 'walletSickle' },
       { text: 'Wallet Matic', value: 'walletMatic' },
       { text: 'Unclaimed Sickle', value: 'unclaimedSickle' },
+      { text: 'Total Sickle', value: 'totalSickle' },
       { text: 'Tax', value: 'tax' },
       { text: 'Action', value: 'action' },
     ]
@@ -191,6 +192,12 @@ export default defineComponent({
           ).toFixed(4)
         )
 
+        item.unclaimedSickle = unclaimedSickle
+
+        item.totalSickle = (
+          Number(walletSickle) + Number(unclaimedSickle)
+        ).toFixed(4)
+
         const tax = await polyblades.methods
           .getOwnRewardsClaimTax()
           .call({ from: item.address })
@@ -216,7 +223,6 @@ export default defineComponent({
           })
         )
 
-        item.unclaimedSickle = unclaimedSickle
         if (index != null) {
           accounts.value[index] = item
         } else {
