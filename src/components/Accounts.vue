@@ -38,10 +38,20 @@
           hide-default-footer
           key="address"
         >
-          <template v-slot:[`item.action`]="{ index }">
-            <v-btn color="primary" outlined @click="removeAccount(index)">
-              <v-icon color="grey">mdi-delete</v-icon>
-            </v-btn>
+          <template v-slot:[`item.action`]="{ item, index }">
+            <div class="text-no-wrap">
+              <v-btn color="primary" outlined @click="removeAccount(index)">
+                <v-icon color="grey">mdi-delete</v-icon>
+              </v-btn>
+              <v-btn
+                class="ml-1"
+                color="primary"
+                outlined
+                @click="refreshAccount(item, index)"
+              >
+                <v-icon color="grey">mdi-refresh</v-icon>
+              </v-btn>
+            </div>
           </template>
         </v-data-table>
       </v-card-text>
@@ -95,61 +105,73 @@ export default defineComponent({
     accounts.value = storedAccounts ? storedAccounts : []
 
     const fetchAccounts = async () => {
-      let accountsState: any[] = []
       accountsLoading.value = true
       await Promise.all(
-        accounts.value.map(async (item) => {
-          try {
-            let walletSickle = Number(
-              await sickle.methods.balanceOf(item.address).call()
-            )
-            walletSickle = Number(
-              parseFloat(
-                web3.utils.fromWei(BigInt(walletSickle).toString(), 'ether')
-              ).toFixed(4)
-            )
-            item.walletSickle = walletSickle
-
-            let walletMatic = Number(await web3.eth.getBalance(item.address))
-            walletMatic = Number(
-              parseFloat(
-                web3.utils.fromWei(BigInt(walletMatic).toString(), 'ether')
-              ).toFixed(4)
-            )
-            item.walletMatic = walletMatic
-
-            let unclaimedSickle = await polyblades.methods
-              .getTokenRewards()
-              .call({ from: item.address })
-
-            unclaimedSickle = Number(
-              parseFloat(
-                web3.utils.fromWei(BigInt(unclaimedSickle).toString(), 'ether')
-              ).toFixed(4)
-            )
-
-            item.unclaimedSickle = unclaimedSickle
-
-            accountsState.push(item)
-          } catch (error) {
-            console.log('Invalid Address', error)
-          }
+        accounts.value.map(async (item, index) => {
+          await fetchAccount(item, index)
         })
       )
-      accounts.value = accountsState
       accountsLoading.value = false
     }
 
     fetchAccounts()
 
-    function addAccount() {
+    async function refreshAccount(item: any, index: number) {
+      accountsLoading.value = true
+      await fetchAccount(item, index)
+      accountsLoading.value = false
+    }
+
+    async function fetchAccount(item: any, index: number | null = null) {
+      try {
+        let walletSickle = Number(
+          await sickle.methods.balanceOf(item.address).call()
+        )
+        walletSickle = Number(
+          parseFloat(
+            web3.utils.fromWei(BigInt(walletSickle).toString(), 'ether')
+          ).toFixed(4)
+        )
+        item.walletSickle = walletSickle
+
+        let walletMatic = Number(await web3.eth.getBalance(item.address))
+        walletMatic = Number(
+          parseFloat(
+            web3.utils.fromWei(BigInt(walletMatic).toString(), 'ether')
+          ).toFixed(4)
+        )
+        item.walletMatic = walletMatic
+
+        let unclaimedSickle = await polyblades.methods
+          .getTokenRewards()
+          .call({ from: item.address })
+
+        unclaimedSickle = Number(
+          parseFloat(
+            web3.utils.fromWei(BigInt(unclaimedSickle).toString(), 'ether')
+          ).toFixed(4)
+        )
+
+        item.unclaimedSickle = unclaimedSickle
+        if (index != null) {
+          accounts.value[index] = item
+        } else {
+          accounts.value.push(item)
+        }
+      } catch (error) {
+        console.log('Invalid Address', error)
+      }
+    }
+
+    async function addAccount() {
       if (web3.utils.isAddress(account.address)) {
         const exists = accounts.value.some(
           (a) => a['address'] === account.address
         )
         if (!exists) {
-          accounts.value.push({ ...account })
-          fetchAccounts()
+          accountsLoading.value = true
+          await fetchAccount({ ...account })
+          accountsLoading.value = false
           localStorage.setItem('addresses', JSON.stringify(accounts.value))
         }
         account.name = ''
@@ -172,6 +194,7 @@ export default defineComponent({
       accountHeaders,
       snackbar,
       removeAccount,
+      refreshAccount,
     }
   },
 })
