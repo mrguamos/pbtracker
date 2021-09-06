@@ -36,7 +36,7 @@
           :items="accounts"
           disable-pagination
           hide-default-footer
-          key="address"
+          item-key="address"
           show-expand
           :single-expand="singleExpand"
           :expanded.sync="expanded"
@@ -295,7 +295,7 @@ export default defineComponent({
       localStorage.setItem('addresses', JSON.stringify(accounts.value))
     }
 
-    const singleExpand = ref(false)
+    const singleExpand = ref(true)
     const expanded = ref([])
 
     const getElement = (element: string) => {
