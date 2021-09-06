@@ -46,7 +46,7 @@ import {
 
 export default defineComponent({
   setup() {
-    const web3 = new Web3(Web3.givenProvider || 'https://polygon-rpc.com/')
+    const web3 = new Web3('https://polygon-rpc.com/')
     provide('web3', web3)
     const character = new web3.eth.Contract(Characters as any, charAddress)
     provide('character', character)

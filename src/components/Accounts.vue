@@ -37,6 +37,9 @@
           disable-pagination
           hide-default-footer
           key="address"
+          show-expand
+          :single-expand="singleExpand"
+          :expanded.sync="expanded"
         >
           <template v-slot:[`item.action`]="{ item, index }">
             <div class="text-no-wrap">
@@ -52,6 +55,22 @@
                 <v-icon color="grey">mdi-refresh</v-icon>
               </v-btn>
             </div>
+          </template>
+          <template v-slot:[`expanded-item`]="{ item, headers }">
+            <td :colspan="headers.length" style="width: 1000px" class="px-0">
+              <v-data-table
+                :headers="characterHeaders"
+                :items="item.characters"
+                disable-pagination
+                hide-default-footer
+                dense
+                key="id"
+              >
+                <template v-slot:[`item.traitName`]="{ item }">
+                  <span :class="getElement(item.traitName)"></span>
+                </template>
+              </v-data-table>
+            </td>
           </template>
         </v-data-table>
       </v-card-text>
@@ -84,7 +103,7 @@ export default defineComponent({
     const sickle: Contract = inject('sickle') as Contract
     const polyblades: Contract = inject('polyblades') as Contract
     const character: Contract = inject('character') as Contract
-
+    const maxTax = ref(0)
     const web3 = inject('web3') as Web3
     const accountHeaders = [
       { text: 'Address', value: 'address' },
@@ -92,7 +111,17 @@ export default defineComponent({
       { text: 'Wallet Sickle', value: 'walletSickle' },
       { text: 'Wallet Matic', value: 'walletMatic' },
       { text: 'Unclaimed Sickle', value: 'unclaimedSickle' },
+      { text: 'Tax', value: 'tax' },
       { text: 'Action', value: 'action' },
+    ]
+
+    const characterHeaders = [
+      { text: 'Id', value: 'id' },
+      { text: 'Element', value: 'traitName' },
+      { text: 'Level', value: 'level' },
+      { text: 'Stamina', value: 'sta' },
+      { text: 'Current XP', value: 'xp' },
+      { text: 'Unclaimed XP', value: 'exp' },
     ]
     const snackbar = ref(false)
     const accountsLoading = ref(false)
@@ -113,11 +142,15 @@ export default defineComponent({
           await fetchAccount(item, index)
         })
       )
-
       accountsLoading.value = false
     }
 
-    fetchAccounts()
+    async function init() {
+      maxTax.value = await polyblades.methods.REWARDS_CLAIM_TAX_MAX().call()
+      fetchAccounts()
+    }
+
+    init()
 
     async function refreshAccount(item: any, index: number) {
       accountsLoading.value = true
@@ -155,25 +188,37 @@ export default defineComponent({
           ).toFixed(4)
         )
 
+        const tax = await polyblades.methods
+          .getOwnRewardsClaimTax()
+          .call({ from: item.address })
+
+        item.tax = ((tax * 0.15) / maxTax.value).toFixed(2)
+        const charIds: any[] = await polyblades.methods
+          .getMyCharacters()
+          .call({ from: item.address })
+
+        item.characters = []
+
+        await Promise.all(
+          charIds.map(async (c) => {
+            const charData = characterFromContract(
+              c,
+              await character.methods.get(c).call()
+            )
+            const exp = await polyblades.methods.getXpRewards(c).call()
+            const sta = await character.methods.getStaminaPoints(c).call()
+
+            const char = { ...charData, exp: exp, sta: `${sta}/200` }
+            item.characters.push(char)
+          })
+        )
+
         item.unclaimedSickle = unclaimedSickle
         if (index != null) {
           accounts.value[index] = item
         } else {
           accounts.value.push(item)
         }
-
-        const charIds: any[] = await polyblades.methods
-          .getMyCharacters()
-          .call({ from: item.address })
-
-        await Promise.all(
-          charIds.map(async (item) => {
-            const charData = characterFromContract(
-              item,
-              await character.methods.get(item).call()
-            )
-          })
-        )
       } catch (error) {
         console.log('Invalid Address', error)
       }
@@ -181,6 +226,7 @@ export default defineComponent({
 
     function characterFromContract(id: number, data: any) {
       const xp = data[0]
+      const name = id
       const level = parseInt(data[1], 10)
       const trait = data[2]
       const traitName = traitNumberToName(+data[2])
@@ -193,6 +239,7 @@ export default defineComponent({
       const race = data[9]
       return {
         id: +id,
+        name,
         xp,
         level,
         trait,
@@ -212,11 +259,11 @@ export default defineComponent({
         case 0:
           return 'Fire'
         case 1:
-          return 'Earth'
+          return 'Ice'
         case 2:
-          return 'Water'
-        case 3:
           return 'Lightning'
+        case 3:
+          return 'Dark'
         default:
           return '???'
       }
@@ -245,6 +292,24 @@ export default defineComponent({
       localStorage.setItem('addresses', JSON.stringify(accounts.value))
     }
 
+    const singleExpand = ref(false)
+    const expanded = ref([])
+
+    const getElement = (element: string) => {
+      switch (element) {
+        case 'Fire':
+          return 'fire-icon'
+        case 'Ice':
+          return 'earth-icon'
+        case 'Lightning':
+          return 'lightning-icon'
+        case 'Dark':
+          return 'water-icon'
+        default:
+          return ''
+      }
+    }
+
     return {
       account,
       addAccount,
@@ -254,9 +319,38 @@ export default defineComponent({
       snackbar,
       removeAccount,
       refreshAccount,
+      expanded,
+      singleExpand,
+      characterHeaders,
+      getElement,
     }
   },
 })
 </script>
 
-<style></style>
+<style lang="scss" scoped>
+.water-icon {
+  color: #055050;
+  content: url(../assets/water.png);
+  width: 2em;
+  height: 2em;
+}
+.fire-icon {
+  color: #055050;
+  content: url(../assets/fire.png);
+  width: 2em;
+  height: 2em;
+}
+.lightning-icon {
+  color: #055050;
+  content: url(../assets/lightning.png);
+  width: 2em;
+  height: 2em;
+}
+.earth-icon {
+  color: #055050;
+  content: url(../assets/earth.png);
+  width: 2em;
+  height: 2em;
+}
+</style>
