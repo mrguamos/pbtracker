@@ -34,7 +34,7 @@ export default defineComponent({
           total = total + item.walletSickle
         }
       })
-      return `${total}`
+      return `${total.toFixed(4)}`
     })
     const totalSickle = computed(() =>
       (Number(totalUnclaimedSickle.value) + Number(walletSickle.value)).toFixed(
@@ -48,7 +48,7 @@ export default defineComponent({
           total = total + item.unclaimedSickle
         }
       })
-      return `${total}`
+      return `${total.toFixed(4)}`
     })
     const totalMatic = computed(() => {
       let total = 0
@@ -57,7 +57,7 @@ export default defineComponent({
           total = total + item.walletMatic
         }
       })
-      return `${total}`
+      return `${total.toFixed(4)}`
     })
 
     return { totalSickle, totalUnclaimedSickle, walletSickle, totalMatic }
