@@ -41,6 +41,9 @@
           :single-expand="singleExpand"
           :expanded.sync="expanded"
         >
+          <template v-slot:[`item.address`]="{ item }">
+            <span class="font-weight-bold">{{ item.address }}</span>
+          </template>
           <template v-slot:[`item.action`]="{ item, index }">
             <div class="text-no-wrap">
               <v-btn color="primary" outlined @click="removeAccount(index)">
