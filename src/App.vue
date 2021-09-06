@@ -12,7 +12,7 @@
       </div>
     </v-app-bar>
     <v-main>
-      <v-container class="py-16">
+      <v-container class="py-16" fluid>
         <router-view />
       </v-container>
     </v-main>
@@ -22,7 +22,7 @@
           {{ new Date().getFullYear() }} —
           <strong
             >Powered by
-            <a href="https://github.com/mrguamos/pbtracker" target="_blank"
+            <a href="https://github.com/mrguamos" target="_blank"
               >iSkramz</a
             ></strong
           >

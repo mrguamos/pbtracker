@@ -83,6 +83,8 @@ export default defineComponent({
   setup() {
     const sickle: Contract = inject('sickle') as Contract
     const polyblades: Contract = inject('polyblades') as Contract
+    const character: Contract = inject('character') as Contract
+
     const web3 = inject('web3') as Web3
     const accountHeaders = [
       { text: 'Address', value: 'address' },
@@ -111,6 +113,7 @@ export default defineComponent({
           await fetchAccount(item, index)
         })
       )
+
       accountsLoading.value = false
     }
 
@@ -158,8 +161,64 @@ export default defineComponent({
         } else {
           accounts.value.push(item)
         }
+
+        const charIds: any[] = await polyblades.methods
+          .getMyCharacters()
+          .call({ from: item.address })
+
+        await Promise.all(
+          charIds.map(async (item) => {
+            const charData = characterFromContract(
+              item,
+              await character.methods.get(item).call()
+            )
+          })
+        )
       } catch (error) {
         console.log('Invalid Address', error)
+      }
+    }
+
+    function characterFromContract(id: number, data: any) {
+      const xp = data[0]
+      const level = parseInt(data[1], 10)
+      const trait = data[2]
+      const traitName = traitNumberToName(+data[2])
+      const staminaTimestamp = data[3]
+      const head = data[4]
+      const arms = data[5]
+      const torso = data[6]
+      const legs = data[7]
+      const boots = data[8]
+      const race = data[9]
+      return {
+        id: +id,
+        xp,
+        level,
+        trait,
+        traitName,
+        staminaTimestamp,
+        head,
+        arms,
+        torso,
+        legs,
+        boots,
+        race,
+      }
+    }
+
+    function traitNumberToName(traitNum: number) {
+      switch (traitNum) {
+        case 0:
+          return 'Fire'
+        case 1:
+          return 'Earth'
+        case 2:
+          return 'Water'
+        case 3:
+          return 'Lightning'
+        default:
+          return '???'
       }
     }
 
