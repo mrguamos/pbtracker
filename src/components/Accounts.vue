@@ -38,14 +38,29 @@
           hide-default-footer
           key="address"
         >
+          <template v-slot:[`item.action`]="{ index }">
+            <v-btn color="primary" outlined @click="removeAccount(index)">
+              <v-icon color="grey">mdi-delete</v-icon>
+            </v-btn>
+          </template>
         </v-data-table>
       </v-card-text>
     </v-card>
+    <v-snackbar v-model="snackbar" top>
+      Invalid Address
+
+      <template v-slot:action="{ attrs }">
+        <v-btn color="pink" text v-bind="attrs" @click="snackbar = false">
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, reactive, inject } from '@vue/composition-api'
+import Web3 from 'web3'
 import { Contract } from 'web3-eth-contract'
 import { useAccounts } from '../store/accounts'
 
@@ -58,15 +73,16 @@ export default defineComponent({
   setup() {
     const sickle: Contract = inject('sickle') as Contract
     const polyblades: Contract = inject('polyblades') as Contract
-    const web3 = inject('web3') as any
+    const web3 = inject('web3') as Web3
     const accountHeaders = [
       { text: 'Address', value: 'address' },
       { text: 'Name', value: 'name' },
       { text: 'Wallet Sickle', value: 'walletSickle' },
       { text: 'Wallet Matic', value: 'walletMatic' },
       { text: 'Unclaimed Sickle', value: 'unclaimedSickle' },
+      { text: 'Action', value: 'action' },
     ]
-
+    const snackbar = ref(false)
     const accountsLoading = ref(false)
     const account = reactive({
       name: '',
@@ -127,19 +143,36 @@ export default defineComponent({
     fetchAccounts()
 
     function addAccount() {
-      const exists = accounts.value.some(
-        (a) => a['address'] === account.address
-      )
-      if (!exists) {
-        accounts.value.push({ ...account })
-        fetchAccounts()
-        localStorage.setItem('addresses', JSON.stringify(accounts.value))
+      if (web3.utils.isAddress(account.address)) {
+        const exists = accounts.value.some(
+          (a) => a['address'] === account.address
+        )
+        if (!exists) {
+          accounts.value.push({ ...account })
+          fetchAccounts()
+          localStorage.setItem('addresses', JSON.stringify(accounts.value))
+        }
+        account.name = ''
+        account.address = ''
+      } else {
+        snackbar.value = true
       }
-      account.name = ''
-      account.address = ''
     }
 
-    return { account, addAccount, accountsLoading, accounts, accountHeaders }
+    function removeAccount(index: number) {
+      accounts.value.splice(index, 1)
+      localStorage.setItem('addresses', JSON.stringify(accounts.value))
+    }
+
+    return {
+      account,
+      addAccount,
+      accountsLoading,
+      accounts,
+      accountHeaders,
+      snackbar,
+      removeAccount,
+    }
   },
 })
 </script>
