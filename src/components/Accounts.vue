@@ -31,7 +31,7 @@
         </v-row>
         <v-data-table
           disable-sort
-          class="pt-10"
+          class="pt-10 table-cursor"
           :loading="accountsLoading"
           :headers="accountHeaders"
           :items="accounts"
@@ -41,20 +41,25 @@
           show-expand
           :single-expand="singleExpand"
           :expanded.sync="expanded"
+          @click:row="expandRow"
         >
           <template v-slot:[`item.address`]="{ item }">
             <div class="font-weight-bold ellipsis">{{ item.address }}</div>
           </template>
           <template v-slot:[`item.action`]="{ item, index }">
             <div class="text-no-wrap">
-              <v-btn color="primary" outlined @click="removeAccount(index)">
+              <v-btn
+                color="primary"
+                outlined
+                @click.stop.prevent="removeAccount(index)"
+              >
                 <v-icon color="grey">mdi-delete</v-icon>
               </v-btn>
               <v-btn
                 class="ml-1"
                 color="primary"
                 outlined
-                @click="refreshAccount(item, index)"
+                @click.stop.prevent="refreshAccount(item, index)"
               >
                 <v-icon color="grey">mdi-refresh</v-icon>
               </v-btn>
@@ -214,15 +219,14 @@ export default defineComponent({
 
     const storedAccounts: any[] = JSON.parse(localStorage.getItem('addresses')!)
 
-    accounts.value = storedAccounts ? storedAccounts : []
-
     const fetchAccounts = async () => {
       accountsLoading.value = true
-      await Promise.all(
-        accounts.value.map(async (item, index) => {
-          await fetchAccount(item, index)
+      const accs = await Promise.all(
+        storedAccounts.map(async (item) => {
+          return await fetchAccount(item)
         })
       )
+      accounts.value = accs
       accountsLoading.value = false
     }
 
@@ -235,7 +239,8 @@ export default defineComponent({
 
     async function refreshAccount(item: any, index: number) {
       accountsLoading.value = true
-      await fetchAccount(item, index)
+      const account = await fetchAccount(item, index)
+      accounts.value[index] = account
       accountsLoading.value = false
     }
 
@@ -283,11 +288,7 @@ export default defineComponent({
 
         item.characters = await getCharacters(item.address)
 
-        if (index != null) {
-          accounts.value[index] = item
-        } else {
-          accounts.value.push(item)
-        }
+        return item
       } catch (error) {
         console.log('Invalid Address', error)
       }
@@ -473,7 +474,8 @@ export default defineComponent({
         )
         if (!exists) {
           accountsLoading.value = true
-          await fetchAccount({ ...account })
+          const acc = await fetchAccount({ ...account })
+          accounts.value.push(acc)
           accountsLoading.value = false
           const sa = accounts.value.map((a) => {
             return { address: a.address, name: a.name }
@@ -496,7 +498,7 @@ export default defineComponent({
     }
 
     const singleExpand = ref(true)
-    const expanded = ref([])
+    const expanded = ref([] as any)
 
     const getElement = (element: string) => {
       switch (element) {
@@ -688,6 +690,15 @@ export default defineComponent({
       return rollingTotal
     }
 
+    function expandRow(value: any) {
+      if (expanded.value.indexOf(value) >= 0) {
+        expanded.value.splice(expanded.value.indexOf(value), 1)
+      } else {
+        expanded.value = []
+        expanded.value.push(value)
+      }
+    }
+
     const chances = ref()
     const chancesLoading = ref(false)
 
@@ -714,6 +725,7 @@ export default defineComponent({
       chances,
       chanceHeaders,
       chancesLoading,
+      expandRow,
     }
   },
 })
