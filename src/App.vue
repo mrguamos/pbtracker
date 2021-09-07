@@ -42,6 +42,8 @@ import {
   IERC20,
   PolyBlades,
   mainAddress,
+  Weapons,
+  weaponAddress,
 } from './contracts/contracts'
 
 export default defineComponent({
@@ -54,6 +56,8 @@ export default defineComponent({
     provide('sickle', sickle)
     const polyblades = new web3.eth.Contract(PolyBlades as any, mainAddress)
     provide('polyblades', polyblades)
+    const weapon = new web3.eth.Contract(Weapons as any, weaponAddress)
+    provide('weapon', weapon)
   },
 })
 </script>

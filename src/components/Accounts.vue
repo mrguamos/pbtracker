@@ -30,6 +30,7 @@
           </v-col>
         </v-row>
         <v-data-table
+          disable-sort
           class="pt-10"
           :loading="accountsLoading"
           :headers="accountHeaders"
@@ -62,12 +63,14 @@
           <template v-slot:[`expanded-item`]="{ item, headers }">
             <td :colspan="headers.length" style="width: 1000px" class="px-0">
               <v-data-table
+                disable-sort
                 class="table-cursor"
                 :headers="characterHeaders"
                 :items="item.characters"
                 disable-pagination
                 hide-default-footer
                 dense
+                @click:row="showDialog"
               >
                 <template v-slot:[`item.traitName`]="{ item }">
                   <span :class="getElement(item.traitName)"></span>
@@ -87,6 +90,72 @@
         </v-btn>
       </template>
     </v-snackbar>
+
+    <div class="text-center">
+      <v-dialog v-model="dialog" width="600">
+        <v-card>
+          <v-card-title class="text-h5 primary lighten-2">
+            Combat Simulator - {{ selectedCharId }}
+          </v-card-title>
+
+          <v-card-text>
+            <div class="pa-2">
+              <v-select
+                v-model="selectedWeapon"
+                :items="weapons"
+                label="Select Weapon"
+                item-value="id"
+                @change="simulate"
+              >
+                <template slot="selection" slot-scope="data">
+                  {{ data.item.stars + 1 }}
+                  <v-icon color="yellow">mdi-star</v-icon
+                  >{{ data.item.element }} - {{ data.item.id }}
+                </template>
+                <template slot="item" slot-scope="data">
+                  {{ data.item.stars + 1 }}
+                  <v-icon color="yellow">mdi-star</v-icon
+                  >{{ data.item.element }} - {{ data.item.id }}
+                </template>
+              </v-select>
+
+              <v-data-table
+                disable-sort
+                :headers="chanceHeaders"
+                :items="chances"
+                disable-pagination
+                hide-default-footer
+                dense
+                :loading="chancesLoading"
+              >
+                <template v-slot:[`item.traitName`]="{ item }">
+                  <span :class="getElement(item.traitName)"></span>
+                </template>
+              </v-data-table>
+            </div>
+          </v-card-text>
+
+          <v-divider></v-divider>
+
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn color="primary" text @click="dialog = false"> Close </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+      <v-dialog v-model="loadingDialog" hide-overlay persistent width="300">
+        <v-card color="green" dark>
+          <v-card-text>
+            Please stand by
+            <v-progress-linear
+              indeterminate
+              color="white"
+              class="mb-0"
+            ></v-progress-linear>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
+    </div>
   </div>
 </template>
 
@@ -95,6 +164,7 @@ import { defineComponent, ref, reactive, inject } from '@vue/composition-api'
 import Web3 from 'web3'
 import { Contract } from 'web3-eth-contract'
 import { useAccounts } from '../store/accounts'
+import { WeaponTrait, WeaponElement } from '../contracts/contracts'
 
 export default defineComponent({
   methods: {
@@ -106,6 +176,7 @@ export default defineComponent({
     const sickle: Contract = inject('sickle') as Contract
     const polyblades: Contract = inject('polyblades') as Contract
     const character: Contract = inject('character') as Contract
+    const weapon: Contract = inject('weapon') as Contract
     const maxTax = ref(0)
     const web3 = inject('web3') as Web3
     const accountHeaders = [
@@ -126,6 +197,12 @@ export default defineComponent({
       { text: 'Stamina', value: 'sta' },
       { text: 'Current XP', value: 'xp' },
       { text: 'Unclaimed XP', value: 'exp' },
+    ]
+
+    const chanceHeaders = [
+      { text: 'Element', value: 'traitName' },
+      { text: 'Power', value: 'power' },
+      { text: 'Chance', value: 'chance' },
     ]
     const snackbar = ref(false)
     const accountsLoading = ref(false)
@@ -227,16 +304,121 @@ export default defineComponent({
           const charData = characterFromContract(charId, c)
           const exp = await polyblades.methods.getXpRewards(charId).call()
           const sta = await character.methods.getStaminaPoints(charId).call()
-          return { ...charData, exp: exp, sta: `${sta}/200` }
+          return {
+            ...charData,
+            exp: exp,
+            sta: `${sta}/200`,
+            ownerAddress: address,
+          }
         })
       )
       return chars
     }
 
     async function getWeapons(address: string) {
-      const weapons: any[] = await polyblades.methods
+      const weapIds: any[] = await polyblades.methods
         .getMyWeapons()
         .call({ from: address })
+      const weapons = await Promise.all(
+        weapIds.map(async (weapId) => {
+          const w = await weapon.methods.get(weapId).call()
+          const weaponData: any = weaponFromContract(weapId, w)
+          return { ...weaponData, ownerAddress: address }
+        })
+      )
+      return weapons
+    }
+
+    function getStatPatternFromProperties(properties: any) {
+      return (properties >> 5) & 0x7f
+    }
+
+    function getStat1Trait(statPattern: number) {
+      return statPattern % 5
+    }
+
+    function getStat2Trait(statPattern: number) {
+      return Math.floor(statPattern / 5) % 5
+    }
+
+    function getStat3Trait(statPattern: number) {
+      return Math.floor(Math.floor(statPattern / 5) / 5) % 5
+    }
+
+    function statNumberToName(statNum: number) {
+      switch (statNum) {
+        case WeaponTrait.CHA:
+          return 'CHA'
+        case WeaponTrait.DEX:
+          return 'DEX'
+        case WeaponTrait.INT:
+          return 'INT'
+        case WeaponTrait.PWR:
+          return 'PWR'
+        case WeaponTrait.STR:
+          return 'STR'
+        default:
+          return '???'
+      }
+    }
+
+    function getWeaponTraitFromProperties(properties: any) {
+      return (properties >> 3) & 0x3
+    }
+
+    function weaponFromContract(id: number, data: any) {
+      const properties = data[0]
+      const stat1 = data[1]
+      const stat2 = data[2]
+      const stat3 = data[3]
+      const level = +data[4]
+      const blade = data[5]
+      const crossguard = data[6]
+      const grip = data[7]
+      const pommel = data[8]
+      const burnPoints = +data[9]
+      const bonusPower = +data[10]
+
+      const stat1Value = +stat1
+      const stat2Value = +stat2
+      const stat3Value = +stat3
+
+      const statPattern = getStatPatternFromProperties(+properties)
+      const stat1Type = getStat1Trait(statPattern)
+      const stat2Type = getStat2Trait(statPattern)
+      const stat3Type = getStat3Trait(statPattern)
+
+      const traitNum = getWeaponTraitFromProperties(+properties)
+
+      const lowStarBurnPoints = burnPoints & 0xff
+      const fourStarBurnPoints = (burnPoints >> 8) & 0xff
+      const fiveStarBurnPoints = (burnPoints >> 16) & 0xff
+
+      const stars = +properties & 0x7
+      return {
+        id: +id,
+        properties,
+        element: traitNumberToName(traitNum),
+        stat1: statNumberToName(stat1Type),
+        stat1Value,
+        stat1Type,
+        stat2: statNumberToName(stat2Type),
+        stat2Value,
+        stat2Type,
+        stat3: statNumberToName(stat3Type),
+        stat3Value,
+        stat3Type,
+        level,
+        blade,
+        crossguard,
+        grip,
+        pommel,
+        stars,
+        lowStarBurnPoints,
+        fourStarBurnPoints,
+        fiveStarBurnPoints,
+        bonusPower,
+      }
     }
 
     function characterFromContract(id: number, data: any) {
@@ -280,7 +462,7 @@ export default defineComponent({
         case 3:
           return 'Dark'
         default:
-          return '???'
+          return ''
       }
     }
 
@@ -331,6 +513,184 @@ export default defineComponent({
       }
     }
 
+    const dialog = ref(false)
+    const loadingDialog = ref(false)
+
+    async function showDialog(row: any) {
+      selectedWeapon.value = 0
+      selectedCharId.value = 0
+      chances.value = []
+      loadingDialog.value = true
+      selectedCharId.value = row.id
+      weapons.value = (await getWeapons(row.ownerAddress)) as any
+      loadingDialog.value = false
+      dialog.value = true
+    }
+
+    const characters = ref([])
+    const weapons = ref([])
+    const selectedWeapon = ref(0)
+
+    async function simulate(weaponId: number) {
+      try {
+        chances.value = []
+        chancesLoading.value = true
+        const c = await character.methods.get(selectedCharId.value).call()
+        const charData = characterFromContract(selectedCharId.value, c)
+        const w = await weapon.methods.get(weaponId).call()
+        const weaponData: any = weaponFromContract(weaponId, w)
+        const targets = await polyblades.methods
+          .getTargets(selectedCharId.value, weaponId)
+          .call()
+        const enemies = await getEnemyDetails(targets)
+        chances.value = await Promise.all(
+          enemies.map(async (enemy) => {
+            const chance = getWinChance(
+              charData,
+              weaponData,
+              enemy.power,
+              enemy.trait
+            )
+
+            return {
+              ...enemy,
+              chance: `${(chance * 100).toFixed(2)}%`,
+              traitName: traitNumberToName(enemy.trait),
+            }
+          })
+        )
+      } catch (error) {
+        console.log(error)
+      } finally {
+        chancesLoading.value = false
+      }
+    }
+
+    function getEnemyDetails(targets: any[]) {
+      return targets.map((data) => {
+        const n = parseInt(data, 10)
+        return {
+          original: data,
+          power: n & 0b11111111_11111111_11111111,
+          trait: n >> 24,
+        }
+      })
+    }
+
+    const selectedCharId = ref(0)
+
+    function CharacterPower(level: number) {
+      return (1000 + level * 10) * (Math.floor(level / 10) + 1)
+    }
+    function GetTotalMultiplierForTrait(wep: any, trait: number) {
+      return (
+        1 +
+        0.01 *
+          (Stat1PercentForChar(wep, trait) +
+            Stat2PercentForChar(wep, trait) +
+            Stat3PercentForChar(wep, trait))
+      )
+    }
+
+    function Stat1PercentForChar(wep: any, trait: number) {
+      return MultiplierPerEffectiveStat(
+        AdjustStatForTrait(wep.stat1Value, wep.stat1Type, trait)
+      )
+    }
+
+    function Stat2PercentForChar(wep: any, trait: number) {
+      return MultiplierPerEffectiveStat(
+        AdjustStatForTrait(wep.stat2Value, wep.stat2Type, trait)
+      )
+    }
+
+    function Stat3PercentForChar(wep: any, trait: number) {
+      return MultiplierPerEffectiveStat(
+        AdjustStatForTrait(wep.stat3Value, wep.stat3Type, trait)
+      )
+    }
+
+    function MultiplierPerEffectiveStat(statValue: number) {
+      return statValue * 0.25
+    }
+
+    function AdjustStatForTrait(
+      statValue: number,
+      statTrait: number,
+      charTrait: number
+    ) {
+      let value = statValue
+      if (statTrait === charTrait) {
+        value = Math.floor(value * 1.07)
+      } else if (statTrait === WeaponTrait.PWR) {
+        value = Math.floor(value * 1.03)
+      }
+      return value
+    }
+
+    function getElementAdvantage(playerElement: number, enemyElement: number) {
+      if ((playerElement + 1) % 4 === enemyElement) return 1
+      if ((enemyElement + 1) % 4 === playerElement) return -1
+      return 0
+    }
+
+    function getWinChance(
+      charData: any,
+      weapData: any,
+      enemyPower: number,
+      enemyElement: number
+    ) {
+      const characterPower = CharacterPower(charData.level)
+      const playerElement = parseInt(charData.trait, 10)
+
+      const we = WeaponElement[weapData.element as keyof typeof WeaponElement]
+      const weaponElement = parseInt(we.toString(), 10)
+      const weaponMultiplier = GetTotalMultiplierForTrait(
+        weapData,
+        playerElement
+      )
+      const totalPower = characterPower * weaponMultiplier + weapData.bonusPower
+      const totalMultiplier =
+        1 +
+        0.075 * (weaponElement === playerElement ? 1 : 0) +
+        0.075 * getElementAdvantage(playerElement, enemyElement)
+      const playerMin = totalPower * totalMultiplier * 0.9
+      const playerMax = totalPower * totalMultiplier * 1.1
+      const playerRange = playerMax - playerMin
+      const enemyMin = enemyPower * 0.9
+      const enemyMax = enemyPower * 1.1
+      const enemyRange = enemyMax - enemyMin
+      let rollingTotal = 0
+      // shortcut: if it is impossible for one side to win, just say so
+      //if (playerMin > enemyMax) return 3;
+      if (playerMax < enemyMin) return 0
+
+      // case 1: player power is higher than enemy power
+      if (playerMin >= enemyMin) {
+        // case 1: enemy roll is lower than player's minimum
+        rollingTotal = (playerMin - enemyMin) / enemyRange
+        // case 2: 1 is not true, and player roll is higher than enemy maximum
+        rollingTotal +=
+          (1 - rollingTotal) * ((playerMax - enemyMax) / playerRange)
+        // case 3: 1 and 2 are not true, both values are in the overlap range. Since values are basically continuous, we assume 50%
+        rollingTotal += (1 - rollingTotal) * 0.5
+      } else {
+        // case 1: player rolls below enemy minimum
+        rollingTotal = (enemyMin - playerMin) / playerRange
+        // case 2: enemy rolls above player maximum
+        rollingTotal +=
+          (1 - rollingTotal) * ((enemyMax - playerMax) / enemyRange)
+        // case 3: 1 and 2 are not true, both values are in the overlap range
+        rollingTotal += (1 - rollingTotal) * 0.5
+        // since this is chance the enemy wins, we negate it
+        rollingTotal = 1 - rollingTotal
+      }
+      return rollingTotal
+    }
+
+    const chances = ref()
+    const chancesLoading = ref(false)
+
     return {
       account,
       addAccount,
@@ -344,6 +704,16 @@ export default defineComponent({
       singleExpand,
       characterHeaders,
       getElement,
+      dialog,
+      showDialog,
+      loadingDialog,
+      weapons,
+      selectedWeapon,
+      simulate,
+      selectedCharId,
+      chances,
+      chanceHeaders,
+      chancesLoading,
     }
   },
 })
