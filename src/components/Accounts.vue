@@ -203,25 +203,40 @@ export default defineComponent({
           .call({ from: item.address })
 
         item.tax = ((tax * 0.15) / maxTax.value).toFixed(2)
-        const charIds: any[] = await polyblades.methods
+        const charIds: number[] = await polyblades.methods
           .getMyCharacters()
           .call({ from: item.address })
 
         item.characters = []
 
-        await Promise.all(
-          charIds.map(async (c) => {
-            const charData = characterFromContract(
-              c,
-              await character.methods.get(c).call()
-            )
-            const exp = await polyblades.methods.getXpRewards(c).call()
-            const sta = await character.methods.getStaminaPoints(c).call()
+        for (const c of charIds) {
+          const charData = characterFromContract(
+            c,
+            await character.methods.get(c).call()
+          )
+          const exp = await polyblades.methods.getXpRewards(c).call()
+          const sta = await character.methods.getStaminaPoints(c).call()
 
-            const char = { ...charData, exp: exp, sta: `${sta}/200` }
-            item.characters.push(char)
-          })
-        )
+          const char = { ...charData, exp: exp, sta: `${sta}/200` }
+
+          item.characters.push(char)
+        }
+
+        // await Promise.all(
+        //   charIds.map(async (c) => {
+        //     console.log(c)
+        //     const charData = characterFromContract(
+        //       c,
+        //       await character.methods.get(c).call()
+        //     )
+        //     const exp = await polyblades.methods.getXpRewards(c).call()
+        //     const sta = await character.methods.getStaminaPoints(c).call()
+
+        //     const char = { ...charData, exp: exp, sta: `${sta}/200` }
+
+        //     item.characters.push(char)
+        //   })
+        // )
 
         if (index != null) {
           accounts.value[index] = item
