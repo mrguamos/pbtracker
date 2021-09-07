@@ -124,6 +124,11 @@
                 </template>
               </v-select>
 
+              <div style="text-align: center">
+                <p class="text-h6 font-weight-black" style="color: black">
+                  Enemies
+                </p>
+              </div>
               <v-data-table
                 disable-sort
                 :headers="chanceHeaders"
