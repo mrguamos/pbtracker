@@ -203,40 +203,8 @@ export default defineComponent({
           .call({ from: item.address })
 
         item.tax = ((tax * 0.15) / maxTax.value).toFixed(2)
-        const charIds: number[] = await polyblades.methods
-          .getMyCharacters()
-          .call({ from: item.address })
 
-        item.characters = []
-
-        for (const c of charIds) {
-          const charData = characterFromContract(
-            c,
-            await character.methods.get(c).call()
-          )
-          const exp = await polyblades.methods.getXpRewards(c).call()
-          const sta = await character.methods.getStaminaPoints(c).call()
-
-          const char = { ...charData, exp: exp, sta: `${sta}/200` }
-
-          item.characters.push(char)
-        }
-
-        // await Promise.all(
-        //   charIds.map(async (c) => {
-        //     console.log(c)
-        //     const charData = characterFromContract(
-        //       c,
-        //       await character.methods.get(c).call()
-        //     )
-        //     const exp = await polyblades.methods.getXpRewards(c).call()
-        //     const sta = await character.methods.getStaminaPoints(c).call()
-
-        //     const char = { ...charData, exp: exp, sta: `${sta}/200` }
-
-        //     item.characters.push(char)
-        //   })
-        // )
+        item.characters = await getCharacters(item.address)
 
         if (index != null) {
           accounts.value[index] = item
@@ -246,6 +214,29 @@ export default defineComponent({
       } catch (error) {
         console.log('Invalid Address', error)
       }
+    }
+
+    async function getCharacters(address: string) {
+      const charIds: number[] = await polyblades.methods
+        .getMyCharacters()
+        .call({ from: address })
+
+      const chars = await Promise.all(
+        charIds.map(async (charId) => {
+          const c = await character.methods.get(charId).call()
+          const charData = characterFromContract(charId, c)
+          const exp = await polyblades.methods.getXpRewards(charId).call()
+          const sta = await character.methods.getStaminaPoints(charId).call()
+          return { ...charData, exp: exp, sta: `${sta}/200` }
+        })
+      )
+      return chars
+    }
+
+    async function getWeapons(address: string) {
+      const weapons: any[] = await polyblades.methods
+        .getMyWeapons()
+        .call({ from: address })
     }
 
     function characterFromContract(id: number, data: any) {
@@ -302,7 +293,10 @@ export default defineComponent({
           accountsLoading.value = true
           await fetchAccount({ ...account })
           accountsLoading.value = false
-          localStorage.setItem('addresses', JSON.stringify(accounts.value))
+          const sa = accounts.value.map((a) => {
+            return { address: a.address, name: a.name }
+          })
+          localStorage.setItem('addresses', JSON.stringify(sa))
         }
         account.name = ''
         account.address = ''
@@ -313,7 +307,10 @@ export default defineComponent({
 
     function removeAccount(index: number) {
       accounts.value.splice(index, 1)
-      localStorage.setItem('addresses', JSON.stringify(accounts.value))
+      const sa = accounts.value.map((a) => {
+        return { address: a.address, name: a.name }
+      })
+      localStorage.setItem('addresses', JSON.stringify(sa))
     }
 
     const singleExpand = ref(true)
