@@ -99,7 +99,7 @@
     <div class="">
       <v-dialog v-model="dialog" width="600">
         <v-card>
-          <v-card-title class="text-h5 font-weight-bold">
+          <v-card-title class="text-h7 font-weight-bold justify-center">
             Combat Simulator #{{ selectedChar.index + 1 }} |
             {{ selectedChar.id }} | {{ selectedChar.name }} |
             {{ selectedChar.level }} |
