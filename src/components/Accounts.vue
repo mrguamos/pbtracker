@@ -96,14 +96,18 @@
       </template>
     </v-snackbar>
 
-    <div class="text-center">
+    <div class="">
       <v-dialog v-model="dialog" width="600">
         <v-card>
-          <v-card-title class="text-h5 primary lighten-2">
-            Combat Simulator - {{ selectedCharId }}
+          <v-card-title class="text-h5 font-weight-bold">
+            Combat Simulator #{{ selectedChar.index + 1 }} |
+            {{ selectedChar.id }} | {{ selectedChar.name }} |
+            {{ selectedChar.level }} |
+            <span :class="selectedChar.element"></span>
           </v-card-title>
 
-          <v-card-text>
+          <v-card-text class="mx-auto">
+            <div style="text-align: center" class="pa-2"></div>
             <div class="pa-2">
               <v-select
                 v-model="selectedWeapon"
@@ -182,6 +186,7 @@ import { defineComponent, ref, reactive, inject } from '@vue/composition-api'
 import Web3 from 'web3'
 import { Contract } from 'web3-eth-contract'
 import { useAccounts } from '../store/accounts'
+import { getCharacterNameFromSeed } from '../store/character-name'
 import { WeaponTrait, WeaponElement } from '../contracts/contracts'
 
 export default defineComponent({
@@ -210,6 +215,7 @@ export default defineComponent({
 
     const characterHeaders = [
       { text: 'Id', value: 'id' },
+      { text: 'Name', value: 'name' },
       { text: 'Element', value: 'traitName' },
       { text: 'Level', value: 'level' },
       { text: 'Stamina', value: 'sta' },
@@ -311,9 +317,8 @@ export default defineComponent({
       const charIds: number[] = await polyblades.methods
         .getMyCharacters()
         .call({ from: address })
-
       const chars = await Promise.all(
-        charIds.map(async (charId) => {
+        charIds.map(async (charId, index) => {
           const c = await character.methods.get(charId).call()
           const charData = characterFromContract(charId, c)
           const exp = await polyblades.methods.getXpRewards(charId).call()
@@ -323,6 +328,8 @@ export default defineComponent({
             exp: exp,
             sta: `${sta}/200`,
             ownerAddress: address,
+            index: index,
+            name: getCharacterNameFromSeed(charId),
           }
         })
       )
@@ -334,10 +341,10 @@ export default defineComponent({
         .getMyWeapons()
         .call({ from: address })
       const weapons = await Promise.all(
-        weapIds.map(async (weapId) => {
+        weapIds.map(async (weapId, index) => {
           const w = await weapon.methods.get(weapId).call()
           const weaponData: any = weaponFromContract(weapId, w)
-          return { ...weaponData, ownerAddress: address }
+          return { ...weaponData, ownerAddress: address, index: index }
         })
       )
       return weapons
@@ -533,10 +540,13 @@ export default defineComponent({
 
     async function showDialog(row: any) {
       selectedWeapon.value = 0
-      selectedCharId.value = 0
+      selectedChar.id = row.id
+      selectedChar.name = row.name
+      selectedChar.index = row.index
+      selectedChar.level = row.level
+      selectedChar.element = getElement(row.traitName)
       chances.value = []
       loadingDialog.value = true
-      selectedCharId.value = row.id
       weapons.value = (await getWeapons(row.ownerAddress)) as any
       loadingDialog.value = false
       dialog.value = true
@@ -550,12 +560,12 @@ export default defineComponent({
       try {
         chances.value = []
         chancesLoading.value = true
-        const c = await character.methods.get(selectedCharId.value).call()
-        const charData = characterFromContract(selectedCharId.value, c)
+        const c = await character.methods.get(selectedChar.id).call()
+        const charData = characterFromContract(selectedChar.id, c)
         const w = await weapon.methods.get(weaponId).call()
         const weaponData: any = weaponFromContract(weaponId, w)
         const targets = await polyblades.methods
-          .getTargets(selectedCharId.value, weaponId)
+          .getTargets(selectedChar.id, weaponId)
           .call()
         const enemies = await getEnemyDetails(targets)
         chances.value = await Promise.all(
@@ -592,8 +602,7 @@ export default defineComponent({
       })
     }
 
-    const selectedCharId = ref(0)
-
+    const selectedChar = reactive({} as any)
     function CharacterPower(level: number) {
       return (1000 + level * 10) * (Math.floor(level / 10) + 1)
     }
@@ -734,7 +743,7 @@ export default defineComponent({
       weapons,
       selectedWeapon,
       simulate,
-      selectedCharId,
+      selectedChar,
       chances,
       chanceHeaders,
       chancesLoading,
