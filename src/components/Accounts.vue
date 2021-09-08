@@ -236,7 +236,8 @@ export default defineComponent({
     })
     const { accounts } = useAccounts()
 
-    const storedAccounts: any[] = JSON.parse(localStorage.getItem('addresses')!)
+    const storedAccounts: any[] =
+      JSON.parse(localStorage.getItem('addresses')!) || []
 
     const fetchAccounts = async () => {
       accountsLoading.value = true
