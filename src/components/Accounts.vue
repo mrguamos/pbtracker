@@ -51,7 +51,7 @@
               <v-btn
                 color="primary"
                 outlined
-                @click.stop.prevent="removeAccount(index)"
+                @click.stop.prevent="removeAccount(item, index)"
               >
                 <v-icon color="grey">mdi-delete</v-icon>
               </v-btn>
@@ -202,6 +202,7 @@ export default defineComponent({
     const weapon: Contract = inject('weapon') as Contract
     const maxTax = ref(0)
     const web3 = inject('web3') as Web3
+    const polybladesWS: Contract = inject('polybladesWS') as Contract
     const accountHeaders = [
       { text: 'Address', value: 'address' },
       { text: 'Name', value: 'name' },
@@ -307,6 +308,10 @@ export default defineComponent({
         item.tax = ((tax * 0.15) / maxTax.value).toFixed(2)
 
         item.characters = await getCharacters(item.address)
+        if (!item.subscription) {
+          const subscription = fightListener(item.address)
+          item.subscription = subscription
+        }
 
         return item
       } catch (error) {
@@ -511,7 +516,14 @@ export default defineComponent({
       }
     }
 
-    function removeAccount(index: number) {
+    async function removeAccount(item: any, index: number) {
+      try {
+        await item.subscription.unsubscribe()
+        console.log('Unsubscribed', item.address)
+      } catch (error) {
+        console.log(error)
+      }
+
       accounts.value.splice(index, 1)
       const sa = accounts.value.map((a) => {
         return { address: a.address, name: a.name }
@@ -725,6 +737,27 @@ export default defineComponent({
 
     const chances = ref()
     const chancesLoading = ref(false)
+
+    function fightListener(address: string) {
+      const encodedAddress = web3.eth.abi.encodeParameter('address', address)
+
+      const opts = {
+        topics: [
+          '0x7a58aac6530017822bf3210fccef7efa31f56277f19966bc887bfb11f40ca96d',
+          encodedAddress,
+        ],
+      }
+      const subscription = polybladesWS.events
+        .FightOutcome(opts)
+        .on('data', (event: any) => {
+          const { owner } = event.returnValues
+          const index = accounts.value.findIndex((a) => a.address === owner)
+          refreshAccount(accounts.value[index], index)
+        })
+        .on('connected', (event: any) => console.log('Fight Listener', address))
+        .on('error', (err: any) => console.log(err))
+      return subscription
+    }
 
     return {
       account,

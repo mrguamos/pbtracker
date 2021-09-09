@@ -51,12 +51,8 @@ import {
 export default defineComponent({
   setup() {
     const options = {
-      // Enable auto reconnection
       reconnect: {
         auto: true,
-        delay: 5000, // ms
-        maxAttempts: 0,
-        onTimeout: false,
       },
     }
     const provider = new Web3.providers.WebsocketProvider(rpcWS, options)
@@ -72,21 +68,8 @@ export default defineComponent({
     provide('polyblades', polyblades)
     const weapon = new web3.eth.Contract(Weapons as any, weaponAddress)
     provide('weapon', weapon)
-    // const polybladesWS = new web3ws.eth.Contract(PolyBlades as any, mainAddress)
-    // provide('polybladesWS', polybladesWS)
-
-    // const opts = {
-    //   filter: {
-    //     value: [],
-    //   },
-    //   fromBlock: 0,
-    // }
-    // web3.eth.abi.encodeParameter('address', 'address')
-    // polybladesWS.events
-    //   .FightOutcome(options)
-    //   .on('data', (event: any) => console.log(event))
-    //   .on('changed', (changed: any) => console.log(changed))
-    //   .on('error', (err: any) => console.log(err))
+    const polybladesWS = new web3ws.eth.Contract(PolyBlades as any, mainAddress)
+    provide('polybladesWS', polybladesWS)
   },
 })
 </script>
