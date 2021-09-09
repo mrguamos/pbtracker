@@ -217,7 +217,7 @@ export default defineComponent({
       { text: 'Id', value: 'id' },
       { text: 'Name', value: 'name' },
       { text: 'Element', value: 'traitName' },
-      { text: 'Level', value: 'level' },
+      { text: 'Level', value: 'actualLevel' },
       { text: 'Stamina', value: 'sta' },
       { text: 'Current XP', value: 'xp' },
       { text: 'Unclaimed XP', value: 'exp' },
@@ -331,6 +331,7 @@ export default defineComponent({
             ownerAddress: address,
             index: index,
             name: getCharacterNameFromSeed(charId),
+            actualLevel: charData.level + 1,
           }
         })
       )
