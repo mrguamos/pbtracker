@@ -752,6 +752,7 @@ export default defineComponent({
         .FightOutcome(opts)
         .on('data', (event: any) => {
           const { owner } = event.returnValues
+          console.log('event received', owner)
           const index = accounts.value.findIndex(
             (a) =>
               String(a.address).toLowerCase() === String(owner).toLowerCase()
