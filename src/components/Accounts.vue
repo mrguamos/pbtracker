@@ -44,7 +44,7 @@
           @click:row="expandRow"
         >
           <template v-slot:[`item.address`]="{ item }">
-            <div class="font-weight-bold ellipsis">{{ item.address }}</div>
+            <div class="font-weight-bold short-address">{{ item.address }}</div>
           </template>
           <template v-slot:[`item.action`]="{ item, index }">
             <div class="text-no-wrap">
@@ -820,6 +820,15 @@ export default defineComponent({
 }
 </style>
 <style lang="scss">
+@media (max-width: 600px) {
+  .short-address {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 200px;
+  }
+}
+
 .table-cursor tbody tr:hover {
   cursor: pointer;
 }
