@@ -1,5 +1,21 @@
 <template>
   <div>
+    <v-alert
+      type="warning"
+      color="primary darken-4"
+      elevation="24"
+      dismissible
+      class="text-center"
+    >
+      This tracker is not affiliated with
+      <a
+        href="https://polyblades.io/"
+        target="_blank"
+        style="color: green; font-weight: bold"
+        >PolyBlades</a
+      >. This tracker only needs your wallet address. Never give your seed / key
+      phrase to anyone.
+    </v-alert>
     <Dashboard />
     <Accounts class="mt-10" />
   </div>
