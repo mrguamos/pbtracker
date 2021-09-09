@@ -12,7 +12,6 @@ if (process.env.NODE_ENV === 'production') {
     },
     registered() {
       console.log('Service worker has been registered.')
-      window.location.reload()
     },
     cached() {
       console.log('Content has been cached for offline use.')
@@ -22,6 +21,7 @@ if (process.env.NODE_ENV === 'production') {
     },
     updated() {
       console.log('New content is available; please refresh.')
+      window.location.reload()
     },
     offline() {
       console.log(
