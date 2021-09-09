@@ -497,7 +497,8 @@ export default defineComponent({
     async function addAccount() {
       if (web3.utils.isAddress(account.address)) {
         const exists = accounts.value.some(
-          (a) => a['address'] === account.address
+          (a) =>
+            String(a['address']).toLowerCase() === account.address.toLowerCase()
         )
         if (!exists) {
           accountsLoading.value = true
@@ -751,7 +752,10 @@ export default defineComponent({
         .FightOutcome(opts)
         .on('data', (event: any) => {
           const { owner } = event.returnValues
-          const index = accounts.value.findIndex((a) => a.address === owner)
+          const index = accounts.value.findIndex(
+            (a) =>
+              String(a.address).toLowerCase() === String(owner).toLowerCase()
+          )
           refreshAccount(accounts.value[index], index)
         })
         .on('connected', (event: any) => console.log('Fight Listener', address))
