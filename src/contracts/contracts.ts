@@ -1,7 +1,7 @@
 export const defaultAddress = '0x0000000000000000000000000000000000000000'
 export const rpc = 'https://polygon-rpc.com/'
 export const rpcWS =
-  'wss://apis-sj.ankr.com/wss/7b1b00182cc84cec81040bf55ac2adb0/76806999c57956c867efc7c9a220692e/polygon/full/main'
+  'wss://speedy-nodes-nyc.moralis.io/93b743973f58e4a2f6caa839/polygon/mainnet/ws'
 // export const rpcWS = 'wss://ws-matic-mainnet.chainstacklabs.com'
 export const charAddress = '0x9313927feed0a2b786708feee5c3f1fe11869af0'
 export const weaponAddress = '0x1ee94d7b8bc1377f9acbd1a0dbe39aceb4823661'
