@@ -80,6 +80,13 @@
                 <template v-slot:[`item.traitName`]="{ item }">
                   <span :class="getElement(item.traitName)"></span>
                 </template>
+                <template v-slot:[`item.sta`]="{ item }">
+                  <span
+                    :class="getStaminaColor(item.sta)"
+                    style="font-weight: bold"
+                    >{{ item.sta }}/200</span
+                  >
+                </template>
               </v-data-table>
             </td>
           </template>
@@ -144,6 +151,13 @@
               >
                 <template v-slot:[`item.traitName`]="{ item }">
                   <span :class="getElement(item.traitName)"></span>
+                </template>
+                <template v-slot:[`item.chance`]="{ item }">
+                  <span
+                    :class="getChanceColor(item.chance)"
+                    style="font-weight: bold"
+                    >{{ item.chance }}%</span
+                  >
                 </template>
               </v-data-table>
             </div>
@@ -332,7 +346,7 @@ export default defineComponent({
           return {
             ...charData,
             exp: exp,
-            sta: `${sta}/200`,
+            sta: sta,
             ownerAddress: address,
             index: index,
             name: getCharacterNameFromSeed(charId),
@@ -594,7 +608,7 @@ export default defineComponent({
 
             return {
               ...enemy,
-              chance: `${(chance * 100).toFixed(2)}%`,
+              chance: `${(chance * 100).toFixed(2)}`,
               traitName: traitNumberToName(enemy.trait),
             }
           })
@@ -764,7 +778,24 @@ export default defineComponent({
       return subscription
     }
 
+    function getChanceColor(chance: number) {
+      if (chance >= 85) return 'chance-green'
+      else if (chance >= 70) return 'chance-yellow'
+      else if (chance >= 50) return 'chance-orange'
+      else return 'chance-red'
+    }
+
+    function getStaminaColor(sta: number) {
+      if (sta >= 160) return 'chance-green'
+      else if (sta >= 120) return 'chance-yellow'
+      else if (sta >= 80) return 'chance-orange'
+      else if (sta >= 40) return 'chance-red'
+      else return ''
+    }
+
     return {
+      getStaminaColor,
+      getChanceColor,
       account,
       addAccount,
       accountsLoading,
@@ -837,5 +868,17 @@ export default defineComponent({
   overflow: hidden;
   text-overflow: ellipsis;
   -o-text-overflow: ellipsis;
+}
+.chance-red {
+  color: red;
+}
+.chance-green {
+  color: green;
+}
+.chance-yellow {
+  color: #b9ae16;
+}
+.chance-orange {
+  color: orange;
 }
 </style>
