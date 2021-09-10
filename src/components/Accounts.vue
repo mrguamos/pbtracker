@@ -581,7 +581,6 @@ export default defineComponent({
       dialog.value = true
     }
 
-    const characters = ref([])
     const weapons = ref([])
     const selectedWeapon = ref(0)
 

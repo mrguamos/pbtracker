@@ -2,7 +2,6 @@ export const defaultAddress = '0x0000000000000000000000000000000000000000'
 export const rpc = 'https://polygon-rpc.com/'
 export const rpcWS =
   'wss://speedy-nodes-nyc.moralis.io/93b743973f58e4a2f6caa839/polygon/mainnet/ws'
-// export const rpcWS = 'wss://ws-matic-mainnet.chainstacklabs.com'
 export const charAddress = '0x9313927feed0a2b786708feee5c3f1fe11869af0'
 export const weaponAddress = '0x1ee94d7b8bc1377f9acbd1a0dbe39aceb4823661'
 export const sickleAddress = '0x2df507f3a084c3e053d57ef418802f56cc1b7cf8'
@@ -13,6 +12,8 @@ export const mainAddress = '0x84c5ce1aa909c187e23823538f2a9dd6eaacebcd'
 // export const charAddress = '0xc6f252c2cdd4087e30608a35c022ce490b58179b'
 // export const weaponAddress = '0x7e091b0a220356b157131c831258a9c98ac8031a'
 // export const sickleAddress = '0x154a9f9cbd3449ad22fdae23044319d6ef2a1fab'
+// export const rpcWS =
+//   'wss://speedy-nodes-nyc.moralis.io/93b743973f58e4a2f6caa839/bsc/mainnet/ws'
 
 export const WeaponTrait = {
   STR: 0,
