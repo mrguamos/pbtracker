@@ -572,7 +572,7 @@ export default defineComponent({
       selectedChar.id = row.id
       selectedChar.name = row.name
       selectedChar.index = row.index
-      selectedChar.level = row.level
+      selectedChar.level = row.actualLevel
       selectedChar.element = getElement(row.traitName)
       chances.value = []
       loadingDialog.value = true
