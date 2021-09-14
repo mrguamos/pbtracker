@@ -265,6 +265,24 @@ export default defineComponent({
       accountsLoading.value = false
     }
 
+    const _refreshAccounts = async () => {
+      accountsLoading.value = true
+      const accs = await Promise.all(
+        accounts.value.map(async (item) => {
+          return await fetchAccount(item)
+        })
+      )
+      accounts.value = accs
+      accountsLoading.value = false
+    }
+
+    function refreshAccounts() {
+      _refreshAccounts()
+      setTimeout(refreshAccounts, 30000)
+    }
+
+    setTimeout(refreshAccounts, 30000)
+
     async function init() {
       maxTax.value = await polyblades.methods.REWARDS_CLAIM_TAX_MAX().call()
       fetchAccounts()
