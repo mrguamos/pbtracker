@@ -274,6 +274,7 @@ export default defineComponent({
       )
       accounts.value = accs
       accountsLoading.value = false
+      setTimeout(refreshAccounts, 30000)
     }
 
     const _refreshAccounts = async () => {
@@ -285,7 +286,6 @@ export default defineComponent({
       )
       accounts.value = accs
       accountsLoading.value = false
-      setTimeout(refreshAccounts, 30000)
     }
 
     function refreshAccounts() {
