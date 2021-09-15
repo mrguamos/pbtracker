@@ -8,9 +8,13 @@
       class="text-center"
     >
       Accepting Donations at
-      <span class="text-caption font-weight-bold" style="color: green"
-        >0x816F7A84bA365963270Ca28f27a012Fd24ab0247</span
+
+      <v-btn
+        icon
+        @click="copyText('0x816F7A84bA365963270Ca28f27a012Fd24ab0247')"
       >
+        <v-icon color="green">mdi-content-copy</v-icon>
+      </v-btn>
       Any amount will do &#128536;
     </v-alert>
     <v-alert
@@ -40,5 +44,11 @@ import Dashboard from '@/components/Dashboard.vue'
 import { defineComponent } from '@vue/composition-api'
 export default defineComponent({
   components: { Dashboard, Accounts },
+  setup() {
+    function copyText(text: any) {
+      navigator.clipboard.writeText(text)
+    }
+    return { copyText }
+  },
 })
 </script>
