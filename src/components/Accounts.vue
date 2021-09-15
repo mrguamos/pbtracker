@@ -201,7 +201,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, reactive, inject } from '@vue/composition-api'
+import {
+  defineComponent,
+  ref,
+  reactive,
+  inject,
+  onBeforeUnmount,
+} from '@vue/composition-api'
 import Web3 from 'web3'
 import { Contract } from 'web3-eth-contract'
 import { useAccounts } from '../store/accounts'
@@ -222,6 +228,18 @@ export default defineComponent({
     const maxTax = ref(0)
     const web3 = inject('web3') as Web3
     const polybladesWS: Contract = inject('polybladesWS') as Contract
+
+    onBeforeUnmount(async () => {
+      accounts.value.forEach(async (a) => {
+        try {
+          await a.subscription.unsubscribe()
+          console.log('Unsubscribed', a.address)
+        } catch (error) {
+          console.log(error)
+        }
+      })
+    })
+
     const accountHeaders = [
       { text: 'Address', value: 'address' },
       { text: 'Name', value: 'name' },
@@ -260,21 +278,16 @@ export default defineComponent({
       JSON.parse(localStorage.getItem('addresses')!) || []
 
     const fetchAccounts = async () => {
-      let list = []
+      accounts.value = []
       accountsLoading.value = true
-      if (accounts.value.length > 0) {
-        list = accounts.value
-      } else {
-        list = storedAccounts
-      }
       const accs = await Promise.all(
-        list.map(async (item) => {
+        storedAccounts.map(async (item) => {
           return await fetchAccount(item)
         })
       )
       accounts.value = accs
       accountsLoading.value = false
-      setTimeout(refreshAccounts, 30000)
+      //setTimeout(refreshAccounts, 30000)
     }
 
     const _refreshAccounts = async () => {
@@ -784,10 +797,7 @@ export default defineComponent({
       const encodedAddress = web3.eth.abi.encodeParameter('address', address)
 
       const opts = {
-        topics: [
-          '0x7a58aac6530017822bf3210fccef7efa31f56277f19966bc887bfb11f40ca96d',
-          encodedAddress,
-        ],
+        topics: [null, encodedAddress],
       }
       const subscription = polybladesWS.events
         .FightOutcome(opts)

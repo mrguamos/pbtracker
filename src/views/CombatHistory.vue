@@ -69,6 +69,7 @@ export default defineComponent({
       { text: 'Sickle Gain', value: 'skillGain' },
       { text: 'Weapon', value: 'weapon' },
       { text: 'XP Gain', value: 'xpGain' },
+      { text: 'Date', value: 'date' },
     ]
 
     async function getCombatHistory() {
@@ -86,6 +87,7 @@ export default defineComponent({
             )
             const t: any = {}
             t.hash = r.hash
+            t.date = new Date(r.timeStamp * 1000).toLocaleString()
             if (transaction.logs) {
               try {
                 if (
