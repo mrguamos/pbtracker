@@ -7,6 +7,19 @@
       dismissible
       class="text-center"
     >
+      Accepting Donations at
+      <span class="font-weight-bold" style="color: green"
+        >0x816F7A84bA365963270Ca28f27a012Fd24ab0247</span
+      >
+      Any amount will do &#128536;
+    </v-alert>
+    <v-alert
+      type="warning"
+      color="primary darken-4"
+      elevation="24"
+      dismissible
+      class="text-center"
+    >
       This tracker is not affiliated with
       <a
         href="https://polyblades.io/"

@@ -2,13 +2,15 @@
   <v-app>
     <v-app-bar app color="black" dark>
       <div class="d-flex align-center">
-        <v-img
-          alt="Logo"
-          contain
-          src="img/poly.png"
-          transition="scale-transition"
-          width="120"
-        />
+        <router-link to="/">
+          <v-img
+            alt="Logo"
+            contain
+            src="/img/poly.png"
+            transition="scale-transition"
+            width="120"
+          />
+        </router-link>
       </div>
     </v-app-bar>
     <v-main>
@@ -73,3 +75,13 @@ export default defineComponent({
   },
 })
 </script>
+<style lang="scss">
+@media (max-width: 1200px) {
+  .short-address {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 200px;
+  }
+}
+</style>

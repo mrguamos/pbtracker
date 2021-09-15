@@ -63,6 +63,11 @@
               >
                 <v-icon color="grey">mdi-refresh</v-icon>
               </v-btn>
+              <router-link :to="`/combat-history/${item.address}`">
+                <v-btn class="ml-1" color="primary" outlined>
+                  <v-icon color="grey">mdi-receipt</v-icon>
+                </v-btn>
+              </router-link>
             </div>
           </template>
           <template v-slot:[`expanded-item`]="{ item, headers }">
@@ -255,9 +260,15 @@ export default defineComponent({
       JSON.parse(localStorage.getItem('addresses')!) || []
 
     const fetchAccounts = async () => {
+      let list = []
       accountsLoading.value = true
+      if (accounts.value.length > 0) {
+        list = accounts.value
+      } else {
+        list = storedAccounts
+      }
       const accs = await Promise.all(
-        storedAccounts.map(async (item) => {
+        list.map(async (item) => {
           return await fetchAccount(item)
         })
       )
@@ -274,14 +285,13 @@ export default defineComponent({
       )
       accounts.value = accs
       accountsLoading.value = false
+      setTimeout(refreshAccounts, 30000)
     }
 
     function refreshAccounts() {
       _refreshAccounts()
       setTimeout(refreshAccounts, 30000)
     }
-
-    setTimeout(refreshAccounts, 30000)
 
     async function init() {
       maxTax.value = await polyblades.methods.REWARDS_CLAIM_TAX_MAX().call()
@@ -868,23 +878,8 @@ export default defineComponent({
 }
 </style>
 <style lang="scss">
-@media (max-width: 600px) {
-  .short-address {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    width: 200px;
-  }
-}
-
 .table-cursor tbody tr:hover {
   cursor: pointer;
-}
-.ellipsis {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  -o-text-overflow: ellipsis;
 }
 .chance-red {
   color: red;

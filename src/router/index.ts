@@ -17,6 +17,13 @@ const routes: Array<RouteConfig> = [
     component: () =>
       import(/* webpackChunkName: "about" */ '../views/Transfer.vue'),
   },
+  {
+    path: '/combat-history/:address',
+    name: 'CombatHistory',
+
+    component: () =>
+      import(/* webpackChunkName: "about" */ '../views/CombatHistory.vue'),
+  },
 ]
 
 const router = new VueRouter({
