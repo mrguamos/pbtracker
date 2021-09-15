@@ -93,7 +93,7 @@ export default defineComponent({
       let value: number = response.data.toTokenAmount
       value /= Math.pow(10, 6)
       sickleUSD.value = value.toFixed(4)
-      setTimeout(getSickleUSD, 1000)
+      setTimeout(getSickleUSD, 5000)
     }
 
     getSickleUSD()
@@ -105,7 +105,7 @@ export default defineComponent({
       let value: number = response.data.toTokenAmount
       value /= Math.pow(10, 6)
       maticUSD.value = value.toFixed(4)
-      setTimeout(getMaticUSD, 1000)
+      setTimeout(getMaticUSD, 5000)
     }
 
     getMaticUSD()
