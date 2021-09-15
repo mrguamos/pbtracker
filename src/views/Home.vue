@@ -8,7 +8,7 @@
       class="text-center"
     >
       Accepting Donations at
-      <span class="font-weight-bold" style="color: green"
+      <span class="text-caption font-weight-bold" style="color: green"
         >0x816F7A84bA365963270Ca28f27a012Fd24ab0247</span
       >
       Any amount will do &#128536;
