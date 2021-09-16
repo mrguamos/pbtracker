@@ -15,6 +15,17 @@
       >
         <v-icon color="green">mdi-content-copy</v-icon>
       </v-btn>
+
+      <v-snackbar v-model="show" top>
+        Copied to clipboard.
+
+        <template v-slot:action="{ attrs }">
+          <v-btn color="pink" text v-bind="attrs" @click="show = false">
+            Close
+          </v-btn>
+        </template>
+      </v-snackbar>
+
       Any amount will do &#128536;
     </v-alert>
     <v-alert
@@ -41,14 +52,16 @@
 <script lang="ts">
 import Accounts from '@/components/Accounts.vue'
 import Dashboard from '@/components/Dashboard.vue'
-import { defineComponent } from '@vue/composition-api'
+import { defineComponent, ref } from '@vue/composition-api'
 export default defineComponent({
   components: { Dashboard, Accounts },
   setup() {
+    const show = ref(false)
     function copyText(text: any) {
       navigator.clipboard.writeText(text)
+      show.value = true
     }
-    return { copyText }
+    return { copyText, show }
   },
 })
 </script>
