@@ -1,41 +1,36 @@
 <template>
   <v-app>
-    <PullTo :top-load-method="refresh" :top-config="topConfig">
-      <v-app-bar app color="black" dark>
-        <div class="d-flex align-center">
-          <router-link to="/">
-            <v-img
-              alt="Logo"
-              contain
-              src="/img/poly.png"
-              transition="scale-transition"
-              width="120"
-            />
-          </router-link>
-        </div>
-      </v-app-bar>
-      <v-main>
-        <v-container class="py-16" fluid>
-          <router-view />
-        </v-container>
-      </v-main>
-      <v-footer color="primary lighten-1" padless>
-        <v-row justify="center" no-gutters>
-          <v-col
-            class="primary lighten-2 py-4 text-center white--text"
-            cols="12"
+    <v-app-bar app color="black" dark>
+      <div class="d-flex align-center">
+        <router-link to="/">
+          <v-img
+            alt="Logo"
+            contain
+            src="/img/poly.png"
+            transition="scale-transition"
+            width="120"
+          />
+        </router-link>
+      </div>
+    </v-app-bar>
+    <v-main>
+      <v-container class="py-16" fluid>
+        <router-view />
+      </v-container>
+    </v-main>
+    <v-footer color="primary lighten-1" padless>
+      <v-row justify="center" no-gutters>
+        <v-col class="primary lighten-2 py-4 text-center white--text" cols="12">
+          {{ new Date().getFullYear() }} —
+          <strong
+            >Powered by
+            <a href="https://github.com/mrguamos" target="_blank"
+              >iSkramz</a
+            ></strong
           >
-            {{ new Date().getFullYear() }} —
-            <strong
-              >Powered by
-              <a href="https://github.com/mrguamos" target="_blank"
-                >iSkramz</a
-              ></strong
-            >
-          </v-col>
-        </v-row>
-      </v-footer>
-    </PullTo>
+        </v-col>
+      </v-row>
+    </v-footer>
   </v-app>
 </template>
 <script lang="ts">
@@ -55,21 +50,8 @@ import {
   rpcWS,
 } from './contracts/contracts'
 
-import PullTo from 'vue-pull-to'
-
 export default defineComponent({
-  components: { PullTo },
   setup() {
-    const topConfig = {
-      pullText: 'Pull to refresh...',
-      triggerText: 'Release to update',
-      loadingText: 'Loading...',
-    }
-
-    function refresh() {
-      window.location.reload()
-    }
-
     const options = {
       reconnect: {
         auto: true,
@@ -90,7 +72,6 @@ export default defineComponent({
     provide('weapon', weapon)
     const polybladesWS = new web3ws.eth.Contract(PolyBlades as any, mainAddress)
     provide('polybladesWS', polybladesWS)
-    return { refresh, topConfig }
   },
 })
 </script>
