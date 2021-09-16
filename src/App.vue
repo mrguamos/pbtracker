@@ -14,9 +14,11 @@
       </div>
     </v-app-bar>
     <v-main>
-      <v-container class="py-16" fluid>
-        <router-view />
-      </v-container>
+      <VuePullRefresh :on-refresh="onRefresh" :config="config">
+        <v-container class="py-16" fluid>
+          <router-view />
+        </v-container>
+      </VuePullRefresh>
     </v-main>
     <v-footer color="primary lighten-1" padless>
       <v-row justify="center" no-gutters>
@@ -49,9 +51,29 @@ import {
   rpc,
   rpcWS,
 } from './contracts/contracts'
+import VuePullRefresh from 'vue-pull-refresh'
 
 export default defineComponent({
+  components: {
+    VuePullRefresh,
+  },
   setup() {
+    const config = {
+      errorLabel: 'Error while reloading...',
+      startLabel: 'Pull to refresh...',
+      readyLabel: 'Release to update...',
+      loadingLabel: 'Loading...',
+      pullDownHeight: 150,
+    }
+
+    function onRefresh() {
+      return new Promise(function () {
+        setTimeout(function () {
+          window.location.reload()
+        }, 100)
+      })
+    }
+
     const options = {
       reconnect: {
         auto: true,
@@ -72,6 +94,7 @@ export default defineComponent({
     provide('weapon', weapon)
     const polybladesWS = new web3ws.eth.Contract(PolyBlades as any, mainAddress)
     provide('polybladesWS', polybladesWS)
+    return { onRefresh, config }
   },
 })
 </script>
