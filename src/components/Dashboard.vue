@@ -87,25 +87,35 @@ export default defineComponent({
     const maticUSD = ref('0')
 
     async function getSickleUSD() {
-      const response = await axios.get(
-        'https://api.1inch.exchange/v3.0/137/quote?fromTokenAddress=0x2df507f3a084c3e053d57ef418802f56cc1b7cf8&toTokenAddress=0xc2132d05d31c914a87c6611c10748aeb04b58e8f&amount=1000000000000000000'
-      )
-      let value: number = response.data.toTokenAmount
-      value /= Math.pow(10, 6)
-      sickleUSD.value = value.toFixed(4)
-      setTimeout(getSickleUSD, 5000)
+      try {
+        const response = await axios.get(
+          'https://api.1inch.exchange/v3.0/137/quote?fromTokenAddress=0x2df507f3a084c3e053d57ef418802f56cc1b7cf8&toTokenAddress=0xc2132d05d31c914a87c6611c10748aeb04b58e8f&amount=1000000000000000000'
+        )
+        let value: number = response.data.toTokenAmount
+        value /= Math.pow(10, 6)
+        sickleUSD.value = value.toFixed(4)
+      } catch (error) {
+        console.log(error)
+      } finally {
+        setTimeout(getSickleUSD, 5000)
+      }
     }
 
     getSickleUSD()
 
     async function getMaticUSD() {
-      const response = await axios.get(
-        'https://api.1inch.exchange/v3.0/137/quote?fromTokenAddress=0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270&toTokenAddress=0xc2132d05d31c914a87c6611c10748aeb04b58e8f&amount=1000000000000000000'
-      )
-      let value: number = response.data.toTokenAmount
-      value /= Math.pow(10, 6)
-      maticUSD.value = value.toFixed(4)
-      setTimeout(getMaticUSD, 5000)
+      try {
+        const response = await axios.get(
+          'https://api.1inch.exchange/v3.0/137/quote?fromTokenAddress=0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270&toTokenAddress=0xc2132d05d31c914a87c6611c10748aeb04b58e8f&amount=1000000000000000000'
+        )
+        let value: number = response.data.toTokenAmount
+        value /= Math.pow(10, 6)
+        maticUSD.value = value.toFixed(4)
+      } catch (error) {
+        console.log(error)
+      } finally {
+        setTimeout(getMaticUSD, 5000)
+      }
     }
 
     getMaticUSD()
