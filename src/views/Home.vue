@@ -39,10 +39,25 @@
       <a
         href="https://polyblades.io/"
         target="_blank"
-        style="color: green; font-weight: bold"
+        style="color: #26c281; font-weight: bold"
         >PolyBlades</a
       >. This tracker only needs your wallet address. Never give your seed / key
       phrase to anyone.
+    </v-alert>
+    <v-alert
+      type="warning"
+      color="primary darken-4"
+      elevation="24"
+      dismissible
+      class="text-center"
+    >
+      Prices are based on
+      <a
+        href="https://app.1inch.io/#/137/swap/0x2dF507f3A084C3e053d57EF418802f56CC1B7CF8/USDT"
+        target="_blank"
+        style="color: #26c281; font-weight: bold"
+        >1INCH SICKLE / USDT</a
+      >.
     </v-alert>
     <Dashboard />
     <Accounts class="mt-10" />
