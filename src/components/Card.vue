@@ -1,6 +1,6 @@
 <template>
   <v-card class="mx-auto dashboard-card">
-    <v-card-title style="color: white" class="text-subtitle-1">{{
+    <v-card-title style="color: white" class="text-subtitle-1 text-no-wrap">{{
       title
     }}</v-card-title>
     <v-card-text style="color: white"> {{ content }}</v-card-text>
