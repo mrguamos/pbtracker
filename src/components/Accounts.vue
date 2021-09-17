@@ -86,11 +86,8 @@
                   <span :class="getElement(item.traitName)"></span>
                 </template>
                 <template v-slot:[`item.sta`]="{ item }">
-                  <span
-                    :class="getStaminaColor(item.sta)"
-                    style="font-weight: bold"
-                    >{{ item.sta }}/200</span
-                  >
+                  <pre><span :class="getStaminaColor(item.sta)" style="font-weight: bold">{{ item.sta }}/200</span>
+<span class="text-caption font-weight-bold">({{ getMaxStaminaTime(item.sta) }})</span></pre>
                 </template>
               </v-data-table>
             </td>
@@ -830,6 +827,18 @@ export default defineComponent({
       else return ''
     }
 
+    function getMaxStaminaTime(stamina: number) {
+      return new Date(
+        new Date().getTime() + (200 - stamina) * 5 * 60000
+      ).toLocaleString(undefined, {
+        month: 'numeric',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+      })
+    }
+
     return {
       getStaminaColor,
       getChanceColor,
@@ -856,6 +865,7 @@ export default defineComponent({
       chanceHeaders,
       chancesLoading,
       expandRow,
+      getMaxStaminaTime,
     }
   },
 })
@@ -898,9 +908,9 @@ export default defineComponent({
   color: green;
 }
 .chance-yellow {
-  color: #b9ae16;
+  color: blue;
 }
 .chance-orange {
-  color: orange;
+  color: rgb(170, 2, 2);
 }
 </style>
