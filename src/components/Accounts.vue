@@ -82,6 +82,12 @@
                 dense
                 @click:row="showDialog"
               >
+                <template v-slot:[`item.actualLevel`]="{ item }">
+                  <span>{{ item.actualLevel }} </span
+                  ><span class="text-caption font-weight-bold"
+                    >({{ getNextXP(item) }} XP left)</span
+                  >
+                </template>
                 <template v-slot:[`item.traitName`]="{ item }">
                   <span :class="getElement(item.traitName)"></span>
                 </template>
@@ -210,7 +216,7 @@ import { Contract } from 'web3-eth-contract'
 import { useAccounts } from '../store/accounts'
 import { getCharacterNameFromSeed } from '../store/character-name'
 import { WeaponTrait, WeaponElement } from '../contracts/contracts'
-
+import { xpTable } from '../constants/xp-table'
 export default defineComponent({
   methods: {
     forceUpdate() {
@@ -389,6 +395,7 @@ export default defineComponent({
             index: index,
             name: getCharacterNameFromSeed(charId),
             actualLevel: charData.level + 1,
+            level: charData.level,
           }
         })
       )
@@ -839,7 +846,20 @@ export default defineComponent({
       })
     }
 
+    function getNextXP(character: any) {
+      const nextLevel = Math.floor(character.level / 10 + 1) * 10
+      let xp = 0
+      for (let i = character.level; i < nextLevel; i++) {
+        xp += xpTable[i]
+      }
+
+      const remainingXP =
+        xp - (parseInt(character.xp) + parseInt(character.exp))
+      return remainingXP
+    }
+
     return {
+      getNextXP,
       getStaminaColor,
       getChanceColor,
       account,
