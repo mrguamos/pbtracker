@@ -17,7 +17,7 @@
     </v-row>
     <v-row justify="center">
       <v-col cols="6" sm="6" md="3">
-        <Card :content="`$${totalSickelUSD}`" :title="'Total Sickle / USD'" />
+        <Card :content="`$${totalSickleUSD}`" :title="'Total Sickle / USD'" />
       </v-col>
       <v-col cols="6" sm="6" md="3">
         <Card :content="`$${maticUSD}`" :title="'Matic / USD'" />
@@ -75,7 +75,7 @@ export default defineComponent({
       return `${total.toFixed(4)}`
     })
 
-    const totalSickelUSD = computed(() => {
+    const totalSickleUSD = computed(() => {
       return (Number(totalSickle.value) * Number(sickleUSD.value)).toFixed(4)
     })
 
@@ -127,7 +127,7 @@ export default defineComponent({
       totalMatic,
       sickleUSD,
       maticUSD,
-      totalSickelUSD,
+      totalSickleUSD,
       totalMaticUSD,
     }
   },
