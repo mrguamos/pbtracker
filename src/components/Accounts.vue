@@ -87,7 +87,7 @@
                   ><span class="font-weight-bold"
                     >({{
                       getNextXP(item) > 0
-                        ? getNextXP(item) + 'XP left'
+                        ? getNextXP(item) + ' XP left'
                         : 'Claim Now'
                     }}
                     )</span
