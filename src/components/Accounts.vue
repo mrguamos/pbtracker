@@ -84,8 +84,13 @@
               >
                 <template v-slot:[`item.actualLevel`]="{ item }">
                   <span>{{ item.actualLevel }} </span
-                  ><span class="text-caption font-weight-bold"
-                    >({{ getNextXP(item) }} XP left)</span
+                  ><span class="font-weight-bold"
+                    >({{
+                      getNextXP(item) > 0
+                        ? getNextXP(item) + 'XP left'
+                        : 'Claim Now'
+                    }}
+                    )</span
                   >
                 </template>
                 <template v-slot:[`item.traitName`]="{ item }">
