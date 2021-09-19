@@ -7,7 +7,7 @@ export const rpcWS =
 export const charAddress = '0x9313927feed0a2b786708feee5c3f1fe11869af0'
 export const weaponAddress = '0x1ee94d7b8bc1377f9acbd1a0dbe39aceb4823661'
 export const sickleAddress = '0x2df507f3a084c3e053d57ef418802f56cc1b7cf8'
-export const mainAddress = '0x84c5ce1aa909c187e23823538f2a9dd6eaacebcd'
+export const mainAddress = '0x7d33c606736408d62bd8e166b7571668d43f0c21'
 
 //CB
 
