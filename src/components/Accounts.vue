@@ -89,8 +89,7 @@
                       getNextXP(item) > 0
                         ? getNextXP(item) + ' XP left'
                         : 'Claim Now'
-                    }}
-                    )</span
+                    }})</span
                   >
                 </template>
                 <template v-slot:[`item.traitName`]="{ item }">
