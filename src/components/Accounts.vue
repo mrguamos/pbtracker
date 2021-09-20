@@ -367,7 +367,7 @@ export default defineComponent({
           .getOwnRewardsClaimTax()
           .call({ from: item.address })
 
-        item.tax = ((tax * 0.15) / maxTax.value).toFixed(2)
+        item.tax = ((tax * 0.31) / maxTax.value).toFixed(2)
 
         item.characters = await getCharacters(item.address)
         if (!item.subscription) {
