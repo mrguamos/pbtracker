@@ -272,6 +272,7 @@ export default defineComponent({
       { text: 'Element', value: 'traitName' },
       { text: 'Power', value: 'power' },
       { text: 'Chance', value: 'chance' },
+      { text: 'Reward', value: 'reward' },
     ]
     const snackbar = ref(false)
     const accountsLoading = ref(false)
@@ -644,20 +645,27 @@ export default defineComponent({
         const targets = await polyblades.methods
           .getTargets(selectedChar.id, weaponId)
           .call()
-        const enemies = await getEnemyDetails(targets)
+        const enemies = getEnemyDetails(targets)
+        const fightRewardGasOffset = await getFightRewardGasOffset()
+        const fightRewardBaseline = await getFightRewardBaseline()
         chances.value = await Promise.all(
-          enemies.map(async (enemy) => {
-            const chance = getWinChance(
-              charData,
-              weaponData,
-              enemy.power,
-              enemy.trait
+          enemies.map(async (enemy: any) => {
+            const chance = getWinChance(charData, weaponData, enemy)
+            const offset = web3.utils.toBN(
+              Number(fightRewardGasOffset) +
+                Number(fightRewardBaseline) *
+                  Math.sqrt(Number(enemy.power) / 1000) *
+                  1
             )
-
+            const usdSickle = await polyblades.methods.usdToSkill(offset).call()
+            const sickle = Number(
+              web3.utils.fromWei(BigInt(usdSickle).toString(), 'ether')
+            )
             return {
               ...enemy,
               chance: `${(chance * 100).toFixed(2)}`,
               traitName: traitNumberToName(enemy.trait),
+              reward: sickle,
             }
           })
         )
@@ -735,12 +743,7 @@ export default defineComponent({
       return 0
     }
 
-    function getWinChance(
-      charData: any,
-      weapData: any,
-      enemyPower: number,
-      enemyElement: number
-    ) {
+    function getWinChance(charData: any, weapData: any, enemy: any) {
       const characterPower = CharacterPower(charData.level)
       const playerElement = parseInt(charData.trait, 10)
 
@@ -754,12 +757,12 @@ export default defineComponent({
       const totalMultiplier =
         1 +
         0.075 * (weaponElement === playerElement ? 1 : 0) +
-        0.075 * getElementAdvantage(playerElement, enemyElement)
+        0.075 * getElementAdvantage(playerElement, enemy.trait)
       const playerMin = totalPower * totalMultiplier * 0.9
       const playerMax = totalPower * totalMultiplier * 1.1
       const playerRange = playerMax - playerMin
-      const enemyMin = enemyPower * 0.9
-      const enemyMax = enemyPower * 1.1
+      const enemyMin = enemy.power * 0.9
+      const enemyMax = enemy.power * 1.1
       const enemyRange = enemyMax - enemyMin
       let rollingTotal = 0
       // shortcut: if it is impossible for one side to win, just say so
@@ -860,6 +863,14 @@ export default defineComponent({
       const remainingXP =
         xp - (parseInt(character.xp) + parseInt(character.exp))
       return remainingXP
+    }
+
+    async function getFightRewardGasOffset() {
+      return await polyblades.methods.fightRewardGasOffset().call()
+    }
+
+    async function getFightRewardBaseline() {
+      return await polyblades.methods.fightRewardBaseline().call()
     }
 
     return {
